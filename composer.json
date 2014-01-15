@@ -1,0 +1,28 @@
+{
+    "name": "suitetea/modularlaravel",
+    "description": "Allows you to organize Laravel code modularly.",
+    "license": "MIT",
+    "version": "0.0.1",
+    "authors": [
+        {
+            "name": "Steven Wade",
+            "email": "stevenwadejr@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=5.3.0",
+        "laravel/framework": ">=4.0.0"
+    },
+    "autoload": {
+        "classmap": [
+            "src/migrations"
+        ],
+        "files": [
+            "src/helpers.php"
+        ],
+        "psr-4": {
+            "SuiteTea\\ModularLaravel\\": "src/"
+        }
+    }
+}
