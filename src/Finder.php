@@ -1,6 +1,8 @@
 <?php namespace SuiteTea\ModularLaravel;
 
 use Illuminate\Foundation\Application;
+use ClassLoader;
+use SuiteTea\ModularLaravel\BaseModule;
 
 class Finder {
 
@@ -14,11 +16,13 @@ class Finder {
     {
         $this->app = $app;
         $this->config = $this->app['config']->get('modularlaravel::config');
+        
+        ClassLoader::addDirectories($this->config['path']);
     }
 
     public function get($module)
     {
-        return $this->modules[strtolower($module)];
+        return $this->modules[$this->formatName($module)];
     }
 
     public function all()
@@ -26,81 +30,81 @@ class Finder {
         return $this->modules;
     }
 
-    public function start()
+    public function go()
     {
-        $this->findFromCore();
-
-        switch ($this->config['mode']) {
-            case 'autoload' :
-                $this->findAll();
-                break;
-            case 'database' :
-                $this->findFromDatabase();
+        if (is_array($this->config['mode'])) {
+            foreach ($this->config['mode'] as $mode) {
+                $method = $mode . 'Loader';
+                $this->$method();
+            }
+        } else {
+            $method = $this->config['mode'] . 'Loader';
+            $this->$method();
         }
+
+        $this->registerModules();
     }
 
-    public function boot()
-    {
-        foreach ($this->modules as $module)
-        {
-            $this->registerModule($module->name);
-        }
-    }
-
-    public function registerModule($name)
-    {
-        $module = $this->modules[strtolower($name)];
-        $provider = $module->getNamespace($module->name . 'ServiceProvider');
-        if ($module->enabled) {
-            $this->app->register($instance = new $provider($this->app, $module));
-        }
-    }
-
-    private function findFromCore()
+    private function manualLoader()
     {
         // Find core modules
-        foreach ($this->config['core'] as $core_module) {
-            $this->modules[strtolower($core_module['name'])] = new \SuiteTea\ModularLaravel\BaseModule(
-                $core_module['name'],
-                array(
-                    'core' => true,
-                    'enabled' => true
-                )
+        foreach ($this->config['modules'] as $module) {
+            $enabled = $this->config['force_enable_manual'] ? true : null;
+            $this->modules[$this->formatName($module)] = new BaseModule(
+                $module,
+                $this->modulePath($module),
+                $this->app,
+                $enabled
             );
         }
     }
 
-    private function findFromDatabase()
+    private function databaseLoader()
     {
         // Find optional modules
         $results = $this->app['db']->table($this->config['table'])->get();
         foreach ($results as $result) {
-            $this->modules[strtolower($result->name)] = new \SuiteTea\ModularLaravel\BaseModule(
+            $this->modules[$this->formatName($result->name)] = new BaseModule(
                 $result->name,
-                array(
-                    'core' => false,
-                    'enabled' => $result->status == 'enabled' ? true : false
-                )
+                $this->modulePath($result->name),
+                $this->app
             );
         }
     }
 
-    private function findAll()
+    private function autoLoader()
     {
         if (is_dir($this->config['path'])) {
             foreach ($this->app['files']->directories($this->config['path']) as $directory) {
-                $module_name = strtolower(pathinfo($directory, PATHINFO_BASENAME));
+                $module_name = $this->formatName(pathinfo($directory, PATHINFO_BASENAME));
+
+                // Load if not already loaded
                 if (! isset($this->modules[$module_name])) {
-                    $this->modules[$module_name] = new \SuiteTea\ModularLaravel\BaseModule(
+                    $this->modules[$module_name] = new BaseModule(
                         $module_name,
-                        array(
-                            'core' => false,
-                            'enabled' => true
-                        )
+                        $this->modulePath($module_name),
+                        $this->app
                     );
                 }
             }
         }
+    }
+
+    private function registerModules()
+    {
+        foreach ($this->modules as $module) {
+            $module->register();
+        }
+    }
+
+    private function modulePath($module)
+    {
+        return $this->config['path'] . '/' . $this->formatName($module);
+    }
+
+    private function formatName($name)
+    {
+        return str_replace(' ', '', strtolower($name));
     }
 
 }

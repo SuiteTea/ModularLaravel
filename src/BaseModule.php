@@ -1,16 +1,30 @@
 <?php namespace SuiteTea\ModularLaravel;
 
-class BaseModule {
+use Illuminate\Foundation\Application;
+
+class BaseModule extends \Illuminate\Support\ServiceProvider {
 
     protected $attributes = [];
 
-    public function __construct($name, array $attributes)
-    {
-        $name = preg_replace('/\s{1,}/', '', ucwords($name));
+    /**
+     * IoC
+     * @var Illuminate\Foundation\Application
+     */
+    protected $app;
 
-        $this->attributes = $attributes;
-        $this->name = $name;
+    public function __construct($name, $path, Application $app, $enabled = null)
+    {
+        $this->app = $app;
+        
+        $this->name = $this->makeName($name);
+        $this->path = $path;
         $this->namespace = $this->buildNamespace($name);
+
+        if (! is_null($enabled)) {
+            $this->enabled = $enabled;
+        }
+
+        $this->loadConfig();
     }
 
     public function getNamespace($path = null)
@@ -20,6 +34,67 @@ class BaseModule {
         $namespace .= ! is_null($path) ? '\\' . $path : '';
 
         return $namespace;
+    }
+
+    public function register()
+    {
+        if ($this->enabled) {
+            $package_name = strtolower('modules/' . $this->name);
+            $this->package($package_name, $package_name, $this->path);
+
+            $this->registerProvider();
+            $this->loadFiles();
+        }
+    }
+
+    public function registerProvider()
+    {
+        if (isset($this->attributes['provider'])) {
+            $provider = $this->namespace . '\\' . $this->provider;
+            $this->app->register(new $provider($this->app));
+        }
+    }
+
+    public function loadFiles()
+    {
+        if (isset($this->attributes['autoload'])) {
+            foreach ($this->autoload as $file) {
+                $path = $this->path($file);
+                if ($this->app['files']->exists($path)) {
+                    require $path;
+                }
+            }
+        }
+    }
+
+    public function loadConfig()
+    {
+        $path = $this->path . '/config.php';
+        if ($this->app['files']->exists($path)) {
+            $config = $this->app['files']->getRequire($path);
+
+            if (isset($config['name'])) {
+                $this->name = $this->makeName($config['name']);
+                $this->namespace = $this->buildNamespace($this->name);
+                unset($config['name']);
+            }
+
+            if (isset($this->enabled)) {
+                unset($config['enabled']);
+            }
+
+            foreach ($config as $key => $value) {
+                $this->$key = $value;
+            }
+        }
+    }
+    
+    public function path($path = null)
+    {
+        if (! is_null($path)) {
+            return $this->path . '/' . ltrim($path, '/');
+        }
+        return $this->path;
     }
 
     public function __get($key)
@@ -36,8 +111,13 @@ class BaseModule {
 
     private function buildNamespace($name)
     {
-        $namespace = app('config')->get('modularlaravel::config.namespace');
+        $namespace = $this->app['config']->get('modularlaravel::config.namespace');
         return '\\' . $namespace . '\\' . str_replace(' ', '', ucwords($name));
+    }
+
+    private function makeName($name)
+    {
+        return preg_replace('/\s{1,}/', '', ucwords($name));
     }
 
 }

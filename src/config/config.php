@@ -13,9 +13,16 @@ return array(
     'namespace' => 'App\\Modules',
 
     /**
-     * Finder mode (ie: 'autoload', 'database')
+     * Finder mode (ie: 'auto', 'database', 'manual')
+     * May also be an array: array('manual', 'auto').
      */
-    'mode' => 'autoload',
+    'mode' => 'auto',
+
+    /**
+     * Any manually declared modules, when in 'manual mode', will
+     * automatically be enabled reguardless of their configuration settings.
+     */
+    'force_enable_manual' => false,
 
     /**
      * Database table to find and store modules
@@ -23,15 +30,15 @@ return array(
     'table' => 'modules',
 
     /**
-     * Core modules defined.
-     * Core modules automatically load and cannot be disabled.
+     * Modules defined.
+     * Modules automatically load and cannot be disabled.
      *
      * Example:
      * 
-     * 'core' => [
-     *     [ 'name' => 'Module Name Here' ]
-     * ]
+     * 'modules' => ['Module Name Here']
+     *
+     * The example module name directory will be 'modulenamehere'.
      */
-    'core' => []
+    'modules' => []
 
 );
