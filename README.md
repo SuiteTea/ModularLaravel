@@ -12,6 +12,29 @@ Via Composer
     	}
 	}
 	"minimum-stability" : "dev"
+	
+\***note:** Modular Laravel is not yet listed on Packagist. You will need to add the following to your Composer file.
+
+	"repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/SuiteTea/ModularLaravel.git"
+        }
+    ]
+    
+Add our modules path to the `classmap` in our Composer file:
+
+	"autoload": {
+		"classmap": [
+			"app/commands",
+			"app/controllers",
+			"app/models",
+			"app/database/migrations",
+			"app/database/seeds",
+			"app/tests/TestCase.php",
+			"app/modules"
+		]
+	}
 
 Next run an update from Composer
 
@@ -29,81 +52,90 @@ After installation is complete, add the service provider to the `app/config/app.
   * /SomeModule
     * /controllers
     * /views
-    * /SomeModuleServiceProvider.php
+    * /ServiceProvider.php
     * /routes.php
+    * /config.php
     
 ### Namespace
 
 Module class namespaces will be prefixed with the default modules namespace, `App\Modules`, followed by the module name. Ex: `App\Modules\SomeModule`.
 
-### Service Provider
+### Module Config
 
-Module service providers extend the `\SuiteTea\ModularLaravel\ModuleServiceProvider` class. This class is an extension to the default Laravel. It adds a `load` method that can be used to include any files needed for the module.
+	<?php
 
-## Config
+	return array(
+
+		// Spaces are allowed
+	    'name' => 'Some Module',
+
+	    'enabled' => true,
+
+		// Optional
+	    'provider' => 'ServiceProvider',
+		
+		// Optional
+	    'autoload' => array(
+	        'routes.php'
+	    )
+	
+	);
+
+## Package Config
 
 Package config:
 
 	<?php
-	
+
 	return array(
-		
-		/**
-		 * Modules directory
-		 */
-		'path' => app_path() . '/modules',
-		
-		/**
-		 * Modules namespace
-		 */
-		'namespace' => 'App\\Modules',
-		
-		/**
-		 * Finder mode (ie: 'autoload', 'database')
-		 */
-		'mode' => 'autoload',
-		
-		/**
-		 * Database table to find and store modules
-		 */
-		'table' => 'modules',
-		
-		/**
-		 * Core modules
-		 * Core modules automatically load and cannot be disabled.
-		 *
-		 * Example:
-		 *
-		 * 'core' => [
-		 *     [ 'name' => 'Some Module' ]
-		 * ]
-		 */
-		'core' => []
-		
+
+	    /**
+	     * Path to modules
+	     */
+	    'path' => app_path() . '/modules',
+
+	    /**
+	     * Namespace of modules
+	     */
+	    'namespace' => 'App\\Modules',
+
+	    /**
+	     * Finder mode (ie: 'auto', 'database', 'manual')
+	     * May also be an array: array('manual', 'auto').
+	     */
+	    'mode' => 'auto',
+
+	    /**
+	     * Any manually declared modules, when in 'manual mode', will
+	     * automatically be enabled reguardless of their configuration settings.
+	     */
+	    'force_enable_manual' => false,
+
+	    /**
+	     * Database table to find and store modules
+	     */
+	    'table' => 'modules',
+
+	    /**
+	     * Modules defined.
+	     * Modules automatically load and cannot be disabled.
+	     *
+	     * Example:
+	     * 
+	     * 'modules' => ['Module Name Here']
+	     *
+	     * The example module name directory will be 'modulenamehere'.
+	     */
+	    'modules' => []
+
 	);
 
-By default, all modules will be automatically loaded and registered with the app (`'mode' => 'autoload'`).
+By default, all modules will be automatically loaded and registered with the app (`'mode' => 'auto'`).
 
-To utilize a database to manage optional modules, first run the following artisan migration:
+To utilize a database to manage optional modules, run the package migration then change the `mode` to `'database'`:
 
 	php artisan migrate --package="suitetea/modularlaravel"
 
 If you wish to override the package settings, publish the package settings and edit that file.
 
 Publish config: `php artisan config:publish suitetea/modularlaravel`. The new config settings are located in `app/config/packages/suitetea/modularlaravel/config.php`.
-
-## Example Module Service Provider
-
-	<?php namespace SuiteTea\Modules\Contacts;
-	
-	class ContactsServiceProvider extends \SuiteTea\ModularLaravel\ModuleServiceProvider {
-	
-		public function load()
-		{
-			$package_name = strtolower($this->module->name);
-			$this->package('app/' . $package_name, $package_name, __DIR__);
-			
-			require __DIR__ . '/routes.php';
-		}
-	
-	}

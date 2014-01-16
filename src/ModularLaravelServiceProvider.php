@@ -8,16 +8,10 @@ class ModularLaravelServiceProvider extends ServiceProvider {
     public function boot()
     {
         $this->package('suitetea/modularlaravel', 'modularlaravel', __DIR__);
-        $this->app['suitetea.module']->start();
-        $this->app['suitetea.module']->boot();
+        $this->app['suitetea.module']->go();
     }
 
     public function register()
-    {
-        $this->registerModule();
-    }
-
-    public function registerModule()
     {
         $this->app['suitetea.module'] = $this->app->share(function($app)
         {
