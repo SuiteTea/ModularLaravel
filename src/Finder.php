@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use ClassLoader;
 use SuiteTea\ModularLaravel\BaseModule;
+use Illuminate\View\Environment as View;
 
 class Finder {
 
@@ -11,10 +12,13 @@ class Finder {
     protected $modules = [];
 
     protected $app;
+    
+    protected $view;
 
-    public function __construct(Application $app)
+    public function __construct(Application $app, View $view)
     {
         $this->app = $app;
+        $this->view = $view;
         $this->config = $this->app['config']->get('modularlaravel::config');
         
         ClassLoader::addDirectories($this->config['path']);
@@ -83,7 +87,8 @@ class Finder {
                     $this->modules[$module_name] = new BaseModule(
                         $module_name,
                         $this->modulePath($module_name),
-                        $this->app
+                        $this->app,
+                        $this->view
                     );
                 }
             }

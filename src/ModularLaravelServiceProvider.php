@@ -2,6 +2,7 @@
 
 use Illuminate\Support\ServiceProvider;
 use SuiteTea\ModularLaravel\Finder as ModuleFinder;
+use Illuminate\View\Environment as View;
 
 class ModularLaravelServiceProvider extends ServiceProvider {
 
@@ -15,7 +16,7 @@ class ModularLaravelServiceProvider extends ServiceProvider {
     {
         $this->app['suitetea.module'] = $this->app->share(function($app)
         {
-            return new ModuleFinder($app);
+            return new ModuleFinder($app, $app['view']);
         });
     }
 

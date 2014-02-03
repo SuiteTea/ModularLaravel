@@ -1,21 +1,22 @@
 <?php namespace SuiteTea\ModularLaravel;
 
 use Illuminate\Foundation\Application;
+use Illuminate\View\Environment as View;
 
 class BaseModule extends \Illuminate\Support\ServiceProvider {
 
     protected $attributes = [];
-
+	protected $view;
     /**
      * IoC
      * @var Illuminate\Foundation\Application
      */
     protected $app;
 
-    public function __construct($name, $path, Application $app, $enabled = null)
+    public function __construct($name, $path, Application $app, View $view, $enabled = null)
     {
         $this->app = $app;
-        
+        $this->view = $view;
         $this->name = $this->makeName($name);
         $this->path = $path;
         $this->namespace = $this->buildNamespace($name);
@@ -44,6 +45,7 @@ class BaseModule extends \Illuminate\Support\ServiceProvider {
 
             $this->registerProvider();
             $this->loadFiles();
+            $this->registerViews();
         }
     }
 
@@ -87,6 +89,11 @@ class BaseModule extends \Illuminate\Support\ServiceProvider {
                 $this->$key = $value;
             }
         }
+    }
+    
+    public function registerViews() 
+    {
+	    $this->view->addNamespace(strtolower($this->name), $this->path.'/views');
     }
     
     public function path($path = null)
