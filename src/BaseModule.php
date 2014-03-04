@@ -60,12 +60,18 @@ class BaseModule extends \Illuminate\Support\ServiceProvider {
     public function loadFiles()
     {
         if (isset($this->attributes['autoload'])) {
-            foreach ($this->autoload as $file) {
-                $path = $this->path($file);
-                if ($this->app['files']->exists($path)) {
-                    require $path;
-                }
-            }
+        
+        	$instance = $this;
+
+            $this->app->booted(function() use ($instance)
+			{
+	            foreach ($instance->autoload as $file) {
+	                $path = $instance->path($file);
+	                if ($instance->app['files']->exists($path)) {
+	                    require $path;
+	                }
+	            }
+	        });
         }
     }
 
