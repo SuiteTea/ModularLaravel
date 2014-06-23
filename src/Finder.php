@@ -109,7 +109,7 @@ class Finder {
 
     private function formatName($name)
     {
-        return str_replace(' ', '', strtolower($name));
+        return str_replace(' ', '', $name);
     }
 
 }
