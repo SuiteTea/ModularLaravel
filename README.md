@@ -8,34 +8,10 @@ Via Composer
 
 	{
     	"require": {
-        	"suitetea/modularlaravel": "dev-master"
+        	"suitetea/modularlaravel": "0.2.*"
     	}
 	}
-	"minimum-stability" : "dev"
 	
-\***note:** Modular Laravel is not yet listed on Packagist. You will need to add the following to your Composer file.
-
-	"repositories": [
-        {
-            "type": "git",
-            "url": "https://github.com/SuiteTea/ModularLaravel.git"
-        }
-    ]
-    
-Add our modules path to the `classmap` in our Composer file:
-
-	"autoload": {
-		"classmap": [
-			"app/commands",
-			"app/controllers",
-			"app/models",
-			"app/database/migrations",
-			"app/database/seeds",
-			"app/tests/TestCase.php",
-			"app/modules"
-		]
-	}
-
 Next run an update from Composer
 
 	composer update
@@ -46,96 +22,57 @@ After installation is complete, add the service provider to the `app/config/app.
 
 ## Modules
 
-### Structure
+Modules are self contained packages that can be installed via Composer or instantiated manually.
 
-* /modules
-  * /SomeModule
-    * /controllers
-    * /views
-    * /ServiceProvider.php
-    * /routes.php
-    * /config.php
-    
-### Namespace
+Modules follow the PSR-4 package structure and should adhere to it's standards.
 
-Module class namespaces will be prefixed with the default modules namespace, `App\Modules`, followed by the module name. Ex: `App\Modules\SomeModule`.
+### Registration
 
-### Module Config
+Modules need to register with ModularLaravel. Example registration with available configuration is below:
 
-	<?php
+```
+ModularLaravel::register([
+	'name' => 'attachments',
+	'directory' => 'app/modules/attachments',
+	'requires' => [
+		'uploader',
+		'file_system'
+	],
+	'namespace' => 'Modules\Attachments',
+    'autoload' => [
+        'files' => [
+            'routes.php'
+        ],
+        'classmap' => [
+            'controllers'
+        ]
+    ]
+]);
+```
 
-	return array(
+### Config Options
 
-		// Spaces are allowed
-	    'name' => 'Some Module',
+- **name** (required) - The name of the module. Used for registration and dependency management.
+- **directory** (required) - The root directory of the module. (If autoloading via Composer, `__DIR__` can be used as a shortcut)
+- **requires** - Any modules that this module depends upon. These dependencies must be installed and activated in order for this module to be activated.
+- **namespace** - You can specify a specific namespace for a module for use with class autoloaders. Specifying this option will register the directory with a class autoloader. This is helpful if the module is not installed via Composer.
+- **autoload** - Similar to Composer's autoload. Only accepts 'files' and 'classmap'. `files` will include any files in this array. `classmap` will add these directories to the class autoloader.
 
-	    'enabled' => true,
+### Events
 
-		// Optional
-	    'provider' => 'ServiceProvider',
-		
-		// Optional
-	    'autoload' => array(
-	        'routes.php'
-	    )
-	
-	);
+ModularLaravel fires two types of events when booting. 
 
-## Package Config
+- **modules.active** - fires when a module is activated successfully. This event appends the module name to the event name, ex: `"modules.active attachments"`.
+- **modules.activation_failed** - fires when a module cannot be activated. Similar to the `modules.active` event, this event appends the module name to the end of the event, ex: `"modules.activation_failed attachments"`.
 
-Package config:
+### Views
 
-	<?php
+A module can include a `views` directory. ModuleLaravel registers a view namespace equal to the name of the module. This is helpful when referring to a specific module's views. 
 
-	return array(
+Example: a view file called `upload.blade.php` would be referrenced like so - `View::make('attachments::upload');
 
-	    /**
-	     * Path to modules
-	     */
-	    'path' => app_path() . '/modules',
+===
 
-	    /**
-	     * Namespace of modules
-	     */
-	    'namespace' => 'App\\Modules',
+**Todo:**
 
-	    /**
-	     * Finder mode (ie: 'auto', 'database', 'manual')
-	     * May also be an array: array('manual', 'auto').
-	     */
-	    'mode' => 'auto',
-
-	    /**
-	     * Any manually declared modules, when in 'manual mode', will
-	     * automatically be enabled reguardless of their configuration settings.
-	     */
-	    'force_enable_manual' => false,
-
-	    /**
-	     * Database table to find and store modules
-	     */
-	    'table' => 'modules',
-
-	    /**
-	     * Modules defined.
-	     * Modules automatically load and cannot be disabled.
-	     *
-	     * Example:
-	     * 
-	     * 'modules' => ['Module Name Here']
-	     *
-	     * The example module name directory will be 'modulenamehere'.
-	     */
-	    'modules' => []
-
-	);
-
-By default, all modules will be automatically loaded and registered with the app (`'mode' => 'auto'`).
-
-To utilize a database to manage optional modules, run the package migration then change the `mode` to `'database'`:
-
-	php artisan migrate --package="suitetea/modularlaravel"
-
-If you wish to override the package settings, publish the package settings and edit that file.
-
-Publish config: `php artisan config:publish suitetea/modularlaravel`. The new config settings are located in `app/config/packages/suitetea/modularlaravel/config.php`.
+- Create a configuration array that dictates which modules to activate. This can be manually coded or dynamic through a database.

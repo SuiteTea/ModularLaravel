@@ -1,123 +1,140 @@
 <?php namespace SuiteTea\ModularLaravel;
 
-use Illuminate\Foundation\Application;
+use Illuminate\Support\ClassLoader;
+use Illuminate\Support\Arr;
+use Illuminate\View\Factory as ViewFactory;
+use SuiteTea\ModularLaravel\Manager;
 
-class BaseModule extends \Illuminate\Support\ServiceProvider {
-
-    protected $attributes = [];
+class BaseModule
+{
+    /**
+     * Local reference of the view factory.
+     *
+     * @var \Illuminate\View\Factory
+     */
+    protected $view;
 
     /**
-     * IoC
-     * @var Illuminate\Foundation\Application
+     * @var array
      */
-    protected $app;
+    protected $config;
 
-    public function __construct($name, $path, Application $app, $enabled = null)
+    /**
+     * Local reference of the global ModularLaravel instance.
+     *
+     * @var \SuiteTea\ModularLaravel\Manager;
+     */
+    protected $moduleManager;
+
+    public function __construct(array $config, ViewFactory $view, Manager $moduleManager)
     {
-        $this->app = $app;
-        
-        $this->name = $this->makeName($name);
-        $this->path = $path;
-        $this->namespace = $this->buildNamespace($name);
-
-        if (! is_null($enabled)) {
-            $this->enabled = $enabled;
-        }
-
-        $this->loadConfig();
+        $this->view = $view;
+        $this->config = $config;
+        $this->moduleManager = $moduleManager;
     }
 
-    public function getNamespace($path = null)
+    /**
+     * Activate
+     *
+     * Handles all methods of activation:
+     * - registers namespace
+     * - autoloads files and classmaps
+     * - registers a namespace for views
+     *
+     * @return void
+     */
+    public function activate()
     {
-        $namespace = $this->namespace;
-
-        $namespace .= ! is_null($path) ? '\\' . $path : '';
-
-        return $namespace;
+        $this->registerNamespace();
+        $this->autoload();
+        $this->registerViews();
     }
 
-    public function register()
+    /**
+     * Get a list of module's dependencies
+     *
+     * @return array
+     */
+    public function dependencies()
     {
-        if ($this->enabled) {
-            $package_name = strtolower('modules/' . $this->name);
-            $this->package($package_name, $package_name, $this->path);
-
-            $this->registerProvider();
-            $this->loadFiles();
-        }
+        return $this->config('requires', []);
     }
 
-    public function registerProvider()
+    /**
+     * Autoload
+     *
+     * Autoloads files and adds specified directories into the
+     * global class autoloader.
+     *
+     * @return void
+     */
+    protected function autoload()
     {
-        if (isset($this->attributes['provider'])) {
-            $provider = $this->namespace . '\\' . $this->provider;
-            $this->app->register(new $provider($this->app));
-        }
-    }
+        $directory = $this->config('directory');
 
-    public function loadFiles()
-    {
-        if (isset($this->attributes['autoload'])) {
-            foreach ($this->autoload as $file) {
-                $path = $this->path($file);
-                if ($this->app['files']->exists($path)) {
-                    require $path;
-                }
+        // Load files
+        if ($files = $this->config('autoload.files', false)) {
+            foreach ($files as $file) {
+                include_once $directory.'/'.$file;
             }
         }
-    }
 
-    public function loadConfig()
-    {
-        $path = $this->path . '/config.php';
-        if ($this->app['files']->exists($path)) {
-            $config = $this->app['files']->getRequire($path);
-
-            if (isset($config['name'])) {
-                $this->name = $this->makeName($config['name']);
-                $this->namespace = $this->buildNamespace($this->name);
-                unset($config['name']);
-            }
-
-            if (isset($this->enabled)) {
-                unset($config['enabled']);
-            }
-
-            foreach ($config as $key => $value) {
-                $this->$key = $value;
-            }
+        // Register directories with the ClassLoader
+        if ($classmap = $this->config('autoload.classmap', false)) {
+            ClassLoader::addDirectories(array_map(function($dir) use ($directory)
+            {
+                return $directory.'/'.$dir;
+            }, $classmap));
         }
     }
-    
-    public function path($path = null)
+
+    /**
+     * Register Views
+     *
+     * Adds a namespace to the 'View' instance for use with the double colon.
+     *
+     * @return void
+     */
+    protected function registerViews()
     {
-        if (! is_null($path)) {
-            return $this->path . '/' . ltrim($path, '/');
+        $this->view->addNamespace(strtolower($this->name), $this->directory.'/views');
+    }
+
+    /**
+     * Register Namespace
+     *
+     * Registers the given namespace with the ModularLaravel instance
+     * of the Composer PSR-4 autoloader.
+     *
+     * @return void
+     */
+    protected function registerNamespace()
+    {
+        if (isset($this->config['namespace'])) {
+            $this->moduleManager->registerNamespace(
+                rtrim($this->config('namespace'), '\\').'\\',
+                $this->config('directory')
+            );
         }
-        return $this->path;
+    }
+
+    /**
+     * @param null $item the key of the config item to return
+     * @param null $default the default return value if none is found
+     * @return array
+     */
+    protected function config($item = null, $default = null)
+    {
+
+        if (is_null($item)) {
+            return $this->config;
+        } else {
+            return Arr::get($this->config, $item, $default);
+        }
     }
 
     public function __get($key)
     {
-        return $this->attributes[$key];
+        return $this->config[$key];
     }
-
-    public function __set($key, $value)
-    {
-        $this->attributes[$key] = $value;
-
-        return $this;
-    }
-
-    private function buildNamespace($name)
-    {
-        $namespace = $this->app['config']->get('modularlaravel::config.namespace');
-        return '\\' . $namespace . '\\' . str_replace(' ', '', ucwords($name));
-    }
-
-    private function makeName($name)
-    {
-        return preg_replace('/\s{1,}/', '', ucwords($name));
-    }
-
 }
