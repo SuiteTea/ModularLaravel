@@ -50,6 +50,32 @@ ModularLaravel::register([
 ]);
 ```
 
+### Pre-Registration
+
+You can pre-register a module before ModularLaravel is instantiated. This is useful when a module is installed via Composer. You can autoload a file, pre-register the module, and when Laravel is booted, the module will be attempt activation.
+
+```
+use SuiteTea\ModularLaravel\Manager;
+
+Manager::preRegister([
+	'name' => 'attachments',
+	'directory' => 'app/modules/attachments',
+	'requires' => [
+		'uploader',
+		'file_system'
+	],
+	'namespace' => 'Modules\Attachments',
+    'autoload' => [
+        'files' => [
+            'routes.php'
+        ],
+        'classmap' => [
+            'controllers'
+        ]
+    ]
+]);
+```
+
 ### Config Options
 
 - **name** (required) - The name of the module. Used for registration and dependency management.

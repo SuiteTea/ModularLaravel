@@ -72,6 +72,23 @@ class Manager
     }
 
     /**
+     * Pre-register
+     *
+     * Used with autoloaded modules to register automatically.
+     * 
+     * @param array $config
+     * @return void
+     */
+    public static function preRegister(array $config)
+    {
+        if (! isset($GLOBALS['suitetea.modules'])) {
+            $GLOBALS['suitetea.modules'] = [];
+        }
+
+        $GLOBALS['suitetea.modules'][] = $config;
+    }
+
+    /**
      * Registers a module with the Manager.
      *
      * @param array $config
@@ -100,6 +117,8 @@ class Manager
      */
     public function go()
     {
+        $this->handlePreRegistered();
+
         $toActivate = $this->registeredModules->all();
 
         // This 'while' loop runs continuously allowing for modules
@@ -175,6 +194,23 @@ class Manager
                     ucwords($config['name'])
                 )
             );
+        }
+    }
+
+    /**
+     * Handle Pre-registered
+     *
+     * When the class is instantiated, register any pre-registered
+     * modules before trying activation. 
+     * 
+     * @return void
+     */
+    protected function handlePreRegistered()
+    {
+        if (isset($GLOBALS['suitetea.modules'])) {
+            foreach ($GLOBALS['suitetea.modules'] as $module) {
+                $this->register($module);
+            }
         }
     }
 
