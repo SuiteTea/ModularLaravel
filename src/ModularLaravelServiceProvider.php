@@ -9,7 +9,7 @@ class ModularLaravelServiceProvider extends ServiceProvider {
 
     public function boot()
     {
-        $this->app->before(function()
+        $this->app->booted(function()
         {
             $this->app['suitetea.modules']->go();
         });
