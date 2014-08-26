@@ -125,7 +125,6 @@ class BaseModule
      */
     protected function config($item = null, $default = null)
     {
-
         if (is_null($item)) {
             return $this->config;
         } else {
