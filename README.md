@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/SuiteTea/ModularLaravel.svg?branch=develop)](https://travis-ci.org/SuiteTea/ModularLaravel)
+
 # Modular Laravel
 
 The Modular Laravel allows for Laravel code to be organized in smaller sets within an application.

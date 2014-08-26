@@ -13,5 +13,5 @@ script: vendor/bin/phpunit --verbose
 
 matrix:
     allow_failures:
-        -php: hhvm
+        - php: hhvm
     fast_finish: true
