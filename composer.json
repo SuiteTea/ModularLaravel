@@ -2,7 +2,7 @@
     "name": "suitetea/modularlaravel",
     "description": "Allows you to organize Laravel code modularly.",
     "license": "MIT",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "authors": [
         {
             "name": "Steven Wade",
@@ -12,8 +12,8 @@
     "minimum-stability": "dev",
     "require": {
         "php": ">=5.4.0",
-        "illuminate/support": "4.2.*@dev",
-        "illuminate/events": "4.2.*@dev"
+        "illuminate/support": "4.2.*@dev|~5.0",
+        "illuminate/events": "4.2.*@dev|~5.0"
     },
     "require-dev": {
         "mockery/mockery": "~0.9",

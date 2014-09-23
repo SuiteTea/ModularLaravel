@@ -9,7 +9,7 @@ class ModularLaravelServiceProvider extends ServiceProvider {
 
     public function boot()
     {
-        $this->app->before(function()
+        $this->app->booted(function()
         {
             $this->app['suitetea.modules']->go();
         });
@@ -17,6 +17,10 @@ class ModularLaravelServiceProvider extends ServiceProvider {
 
     public function register()
     {
+        // Register The Laravel Auto Loader for 5.0
+        // Since it is not registered by default
+        \Illuminate\Support\ClassLoader::register();
+
         $this->app['suitetea.modules'] = $this->app->share(function($app)
         {
             return new Manager(new Collection, $app['view'], new ClassLoader, $app['events']);

@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/SuiteTea/ModularLaravel.svg?branch=develop)](https://travis-ci.org/SuiteTea/ModularLaravel)
+
 # Modular Laravel
 
 The Modular Laravel allows for Laravel code to be organized in smaller sets within an application.
@@ -8,7 +10,7 @@ Via Composer
 
 	{
     	"require": {
-        	"suitetea/modularlaravel": "0.2.*"
+        	"suitetea/modularlaravel": "0.4.*"
     	}
 	}
 	
@@ -24,7 +26,7 @@ After installation is complete, add the service provider to the `app/config/app.
 
 Modules are self contained packages that can be installed via Composer or instantiated manually.
 
-Modules follow the PSR-4 package structure and should adhere to it's standards.
+Modules follow the PSR-4 package structure and should adhere to its standards.
 
 ### Registration
 
@@ -52,7 +54,7 @@ ModularLaravel::register([
 
 ### Pre-Registration
 
-You can pre-register a module before ModularLaravel is instantiated. This is useful when a module is installed via Composer. You can autoload a file, pre-register the module, and when Laravel is booted, the module will be attempt activation.
+You can pre-register a module before ModularLaravel is instantiated. This is useful when a module is installed via Composer. You can autoload a file, pre-register the module, and when Laravel is booted, the module will attempt activation.
 
 ```
 use SuiteTea\ModularLaravel\Manager;

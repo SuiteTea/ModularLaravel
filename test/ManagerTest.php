@@ -26,6 +26,7 @@ class ManagerTest extends \PHPUnit_Framework_TestCase
     protected function tearDown()
     {
         m::close();
+        unset($GLOBALS['suitetea.modules']);
     }
 
     public function testModuleRegistrationConfigValidationPasses()
@@ -38,6 +39,28 @@ class ManagerTest extends \PHPUnit_Framework_TestCase
         );
 
         $this->assertTrue($this->manager->registry->has('attachments'));
+    }
+
+    public function testModulePreRegistrationAppendsModule()
+    {
+        $this->assertFalse(isset($GLOBALS['suitetea.modules']));
+
+        Manager::preRegister(
+            [
+                'name' => 'attachments',
+                'directory' => __DIR__
+            ]
+        );
+
+        $this->assertNotEmpty($GLOBALS['suitetea.modules']);
+    }
+
+    public function testGetProtectedProperty()
+    {
+        $view = m::mock('Illuminate\View\Factory');
+
+        $this->assertInstanceOf(get_class($view), $this->manager->get('view'));
+        $this->assertInstanceOf(get_class($view), $this->manager->view);
     }
 
     public function testModuleRegistrationConfigValidationFails()

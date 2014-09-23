@@ -229,5 +229,6 @@ class Manager
                 return $this->activeModules;
                 break;
         }
+        return $this->$name;
     }
 }
