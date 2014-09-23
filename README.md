@@ -10,7 +10,7 @@ Via Composer
 
 	{
     	"require": {
-        	"suitetea/modularlaravel": "0.3.*"
+        	"suitetea/modularlaravel": "0.4.*"
     	}
 	}
 	
