@@ -74,7 +74,7 @@ class Manager
         $this->view = $view;
         $this->classLoader = $classLoader;
         $this->dispatcher = $dispatcher;
-        $this->configManager = $configManager
+        $this->configManager = $configManager;
         $this->registeredModules = new $collection;
         $this->activeModules = new $collection;
     }
