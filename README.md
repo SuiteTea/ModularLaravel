@@ -10,7 +10,7 @@ Via Composer
 
 	{
     	"require": {
-        	"suitetea/modularlaravel": "0.4.*"
+        	"suitetea/modularlaravel": "0.5.*"
     	}
 	}
 	
@@ -98,6 +98,12 @@ ModularLaravel fires two types of events when booting.
 A module can include a `views` directory. ModuleLaravel registers a view namespace equal to the name of the module. This is helpful when referring to a specific module's views. 
 
 Example: a view file called `upload.blade.php` would be referrenced like so - `View::make('attachments::upload');
+
+### Config Files
+
+A module may include configuration files within a `config` directory within the module directory. ModularLaravel registers a config namespace equal to the name of the module all lowercase.
+
+Example: a config file located at `config/config.php` in the module directory would be accessible via `Config::('modulename::configitem')`. Likewise, a config file not using the default name of `config.php` can be accessed via dot notation: `Config::('modulename::file.option')`
 
 ===
 
