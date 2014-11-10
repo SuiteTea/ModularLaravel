@@ -24,7 +24,11 @@ class ManagerEventsTest extends \PHPUnit_Framework_TestCase
 
         $this->dispatcher = new Dispatcher($container);
 
-        $this->manager = new Manager(new Collection, $view, $loader, $this->dispatcher);
+        $configManager = m::mock('Illuminate\Config\Repository');
+        $configManager->shouldReceive('package');
+        $configManager->shouldReceive('addNamespace');
+
+        $this->manager = new Manager(new Collection, $view, $loader, $this->dispatcher, $configManager);
     }
 
     protected function tearDown()
