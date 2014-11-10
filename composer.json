@@ -13,7 +13,8 @@
     "require": {
         "php": ">=5.4.0",
         "illuminate/support": "4.2.*@dev|~5.0",
-        "illuminate/events": "4.2.*@dev|~5.0"
+        "illuminate/events": "4.2.*@dev|~5.0",
+        "illuminate/config": "4.2.*@dev|~5.0"
     },
     "require-dev": {
         "mockery/mockery": "~0.9",
