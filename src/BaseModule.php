@@ -65,6 +65,7 @@ class BaseModule
         $this->registerNamespace();
         $this->autoload();
         $this->registerViews();
+        $this->registerConfigNamespace();
     }
 
     /**
