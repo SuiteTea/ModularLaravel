@@ -23,7 +23,13 @@ class ModularLaravelServiceProvider extends ServiceProvider {
 
         $this->app['suitetea.modules'] = $this->app->share(function($app)
         {
-            return new Manager(new Collection, $app['view'], new ClassLoader, $app['events']);
+            return new Manager(
+                new Collection,
+                $app['view'],
+                new ClassLoader,
+                $app['events'],
+                $app['config']
+            );
         });
 
         $this->app->booting(function()

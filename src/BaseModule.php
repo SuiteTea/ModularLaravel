@@ -3,6 +3,7 @@
 use Illuminate\Support\ClassLoader;
 use Illuminate\Support\Arr;
 use Illuminate\View\Factory as ViewFactory;
+use Illuminate\Config\Repository as ConfigManager;
 use SuiteTea\ModularLaravel\Manager;
 
 class BaseModule
@@ -26,11 +27,27 @@ class BaseModule
      */
     protected $moduleManager;
 
-    public function __construct(array $config, ViewFactory $view, Manager $moduleManager)
-    {
+    /**
+     * @var \Illuminate\Config\Repository
+     */
+    protected $configManager;
+
+    /**
+     * @param array $config
+     * @param \Illuminate\View\Factory $view
+     * @param \SuiteTea\ModularLaravel\Manager $moduleManager
+     * @param \Illuminate\Config\Repository $configManager
+     */
+    public function __construct(
+        array $config,
+        ViewFactory $view,
+        Manager $moduleManager,
+        ConfigManager $configManager
+    ) {
         $this->view = $view;
         $this->config = $config;
         $this->moduleManager = $moduleManager;
+        $this->configManager = $configManager;
     }
 
     /**
@@ -48,6 +65,7 @@ class BaseModule
         $this->registerNamespace();
         $this->autoload();
         $this->registerViews();
+        $this->registerConfigNamespace();
     }
 
     /**
@@ -116,6 +134,19 @@ class BaseModule
                 $this->config('directory')
             );
         }
+    }
+
+    /**
+     * Register Config Namespace
+     *
+     * Adds a namespace to the 'Config' instance for use with the double colon.
+     *
+     * @return void
+     */
+    protected function registerConfigNamespace()
+    {
+        $this->configManager->package(strtolower($this->name), $this->directory, strtolower($this->name));
+        $this->configManager->addNamespace(strtolower($this->name), $this->directory.'/config');
     }
 
     /**

@@ -2,6 +2,7 @@
 
 use Illuminate\Events\Dispatcher;
 use Illuminate\View\Factory as ViewFactory;
+use Illuminate\Config\Repository as ConfigManager;
 use Illuminate\Support\Collection;
 use Composer\Autoload\ClassLoader;
 use SuiteTea\ModularLaravel\Exceptions\DuplicateModuleException;
@@ -56,17 +57,24 @@ class Manager
     ];
 
     /**
+     * @var \Illuminate\Config\Repository
+     */
+    protected $configManager;
+
+    /**
      * @param \Illuminate\Support\Collection $collection
      */
     public function __construct(
         Collection $collection,
         ViewFactory $view,
         ClassLoader $classLoader,
-        Dispatcher $dispatcher
+        Dispatcher $dispatcher,
+        ConfigManager $configManager
     ) {
         $this->view = $view;
         $this->classLoader = $classLoader;
         $this->dispatcher = $dispatcher;
+        $this->configManager = $configManager;
         $this->registeredModules = new $collection;
         $this->activeModules = new $collection;
     }
@@ -99,7 +107,7 @@ class Manager
 
         $this->registeredModules->put(
             $config['name'],
-            new BaseModule($config, $this->view, $this)
+            new BaseModule($config, $this->view, $this, $this->configManager)
         );
     }
 
