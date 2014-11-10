@@ -146,6 +146,7 @@ class BaseModule
     protected function registerConfigNamespace()
     {
         $this->configManager->package(strtolower($this->name), $this->directory, strtolower($this->name));
+        $this->configManager->addNamespace(strtolower($this->name), $this->directory.'/config');
     }
 
     /**
